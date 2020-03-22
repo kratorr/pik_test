@@ -4,13 +4,10 @@ from django.db import models
 class Building(models.Model):
     address = models.CharField(
         max_length=200,
-        verbose_name='Адрес',
-        blank=True, default=''
+        verbose_name='Адрес'
     )
-    construction_year = models.IntegerField(
+    construction_year = models.PositiveIntegerField(
         verbose_name="Год постройки",
-        null=True,
-        blank=True,
         db_index=True
     )
 
@@ -25,8 +22,8 @@ class BricksTask(models.Model):
         related_name='brick_tasks',
         verbose_name='Задание на кладку'
     )
-    count = models.PositiveIntegerField(verbose_name='Количество кирпичей', null=False)
-    date = models.DateField(verbose_name='Дата создания', blank=False)
+    count = models.PositiveIntegerField(verbose_name='Количество кирпичей')
+    date = models.DateField(verbose_name='Дата создания')
 
     def __str__(self):
         return f"{self.building}, кол-во кирпичей {self.count}"

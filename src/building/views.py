@@ -19,9 +19,8 @@ class BuildingViewSet(CreateModelMixin, GenericViewSet):
     serializer_class = BuildingSerializer
 
     @action(methods=['post'], detail=True, url_path='add-bricks')
-    def add_bricks(self, request, pk=None):
-        queryset = Building.objects.all()
-        building = get_object_or_404(queryset, pk=pk)
+    def add_bricks(self, request, pk=None):        
+        building = get_object_or_404(self.queryset, pk=pk)
         serializer = BricksTaskSerializer(data=request.data, context={'building': building})
         if serializer.is_valid(raise_exception=True):
             question = serializer.save()
@@ -31,21 +30,25 @@ class BuildingViewSet(CreateModelMixin, GenericViewSet):
 class BuildingStats(viewsets.GenericViewSet):
 
     def list(self, request, format=None):
+        from pprint import pprint
         queryset = Building.objects.values('address', 'id', 'brick_tasks__date'). \
             annotate(Sum('brick_tasks__count')).order_by('brick_tasks__date')
         serializer = BuildingStatsSerializer(queryset, many=True)
         
         grouped_data = defaultdict(list)
+
         for grouped_task in serializer.data:
-            if grouped_task['id'] in grouped_data:
-                grouped_data[grouped_task['id']]['bricks'].append(
+            build_id = grouped_task['id']
+            if build_id in grouped_data:
+                grouped_data[build_id]['bricks'].append(
                     {'count': grouped_task['count'], 'date': grouped_task['date']}
                 )
             else:
-                grouped_data[grouped_task['id']] = {
-                    'address': grouped_task['address'], 'bricks': [
+                grouped_data[build_id] = {
+                    'address': grouped_task['address'],
+                    'bricks': [
                         {'count':grouped_task['count'], 'date': grouped_task['date']}
                     ]
-            }
+                }   
         result = [data for data in grouped_data.values()]
         return Response(result)
