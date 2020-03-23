@@ -104,9 +104,61 @@ class BuildingStatsTest(TestCase):
     """ Test module for getting buildings stats """
     def setUp(self):
         self.view = BuildingStats.as_view({'get': 'list'})
-        
+        self.bulding_1 = Building.objects.create(address='тестовый адрес1', construction_year=2000)
+        self.bulding_2 = Building.objects.create(address='тестовый адрес2', construction_year=2000)
+        self.bricks_tasks1 = BricksTask.objects.create(
+            building=self.bulding_1, 
+            count=10, 
+            date='2020-03-20'
+        )
+        self.bricks_tasks2 = BricksTask.objects.create(
+            building=self.bulding_1, 
+            count=15, 
+            date='2020-03-20'
+        )
+        self.bricks_tasks3 = BricksTask.objects.create(
+            building=self.bulding_1, 
+            count=5, 
+            date='2020-03-21'
+        )
+        self.bricks_tasks4 = BricksTask.objects.create(
+            building=self.bulding_2, 
+            count=10, 
+            date='2020-03-19'
+        )
+        self.valid_stats = [
+        {
+            'address': 'тестовый адрес2',
+            'bricks': [
+                {
+                'count': 10,
+                'date': '2020-03-19'
+                }
+            ]
+        },
+        {
+            'address': 'тестовый адрес1',
+            'bricks': [
+                {
+                'count': 25,
+                'date': '2020-03-20'
+                }, 
+                {
+                'count': 5,
+                'date': '2020-03-21'
+                }
+            ]
+        }
+        ]
+
     def test_get_stats(self):
         factory = APIRequestFactory()
         request = factory.get(f'/api/building/stats/',)
         response = self.view(request)
         self.assertEqual(response.status_code, 200)
+
+    def test_get_valid(self):
+        factory = APIRequestFactory()
+        request = factory.get(f'/api/building/stats/',)
+        response = self.view(request)
+        self.assertEqual(response.data, self.valid_stats)
